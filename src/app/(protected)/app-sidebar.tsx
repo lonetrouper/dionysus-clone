@@ -1,15 +1,30 @@
 "use client";
-import { Bot, CreditCard, LayoutDashboard, Presentation } from "lucide-react";
+import {
+  Bot,
+  CreditCard,
+  LayoutDashboard,
+  Plus,
+  Presentation,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from "~/components/ui/sidebar";
 import Image from "next/image";
+import Link from "next/link";
+import { cn } from "~/lib/utils";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
 
 const pages = [
   {
@@ -34,8 +49,25 @@ const pages = [
   },
 ];
 
+const projects = [
+  {
+    id: 1,
+    title: "project 1",
+  },
+  {
+    id: 2,
+    title: "project 2",
+  },
+  {
+    id: 3,
+    title: "project 3",
+  },
+];
+
 export function AppSidebar() {
   const { open } = useSidebar();
+  const pathName = usePathname();
+  const [projectId, setProjectId] = useState<number | undefined>();
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
@@ -47,9 +79,67 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup />
-        <SidebarGroupLabel className="mx-3 font-bold">Application</SidebarGroupLabel>
-        <SidebarGroup />
+        <SidebarGroup>
+          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu key="main-menu">
+              {pages.map((page) => (
+                <SidebarMenuItem key={page.title}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href={page.href}
+                      key={page.title}
+                      className={cn(
+                        { "!bg-primary !text-white": pathName === page.href },
+                        "list-none",
+                      )}
+                    >
+                      <page.icon />
+                      <span>{page.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu key="project-menu">
+              {projects.map((project) => (
+                <SidebarMenuItem key={project.title}>
+                  <SidebarMenuButton asChild>
+                    <div onClick={() => setProjectId(project.id)}>
+                      <div
+                        className={cn(
+                          "flex size-6 items-center justify-center rounded-sm border bg-white text-sm text-primary",
+                          { "bg-primary text-white": projectId === project.id },
+                        )}
+                      >
+                        {project.title[0]}
+                      </div>
+                      <span>{project.title}</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              <div className="h-2">
+                {open && (
+                  <SidebarMenuItem>
+                    <Link href="/create">
+                      <Button size="sm" variant={"outline"} className="w-fit">
+                        <Plus />
+                        Create Project
+                      </Button>
+                    </Link>
+                  </SidebarMenuItem>
+                )}
+              </div>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter />
     </Sidebar>
