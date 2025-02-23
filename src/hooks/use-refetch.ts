@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 
-const refetch = () => {
+const useRefetch = () => {
   const queryClient = useQueryClient();
   return async () => {
     await queryClient.refetchQueries({
@@ -9,4 +9,4 @@ const refetch = () => {
   };
 };
 
-export default refetch;
+export default useRefetch;
