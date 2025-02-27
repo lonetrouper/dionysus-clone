@@ -25,6 +25,7 @@ import { cn } from "~/lib/utils";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import useProject from "~/hooks/use-project";
 
 const pages = [
   {
@@ -49,25 +50,11 @@ const pages = [
   },
 ];
 
-const projects = [
-  {
-    id: 1,
-    title: "project 1",
-  },
-  {
-    id: 2,
-    title: "project 2",
-  },
-  {
-    id: 3,
-    title: "project 3",
-  },
-];
 
 export function AppSidebar() {
   const { open } = useSidebar();
   const pathName = usePathname();
-  const [projectId, setProjectId] = useState<number | undefined>();
+  const { projects, projectId, setProjectId } = useProject();
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
@@ -108,8 +95,8 @@ export function AppSidebar() {
           <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu key="project-menu">
-              {projects.map((project) => (
-                <SidebarMenuItem key={project.title}>
+              {projects?.map((project) => (
+                <SidebarMenuItem key={project.name}>
                   <SidebarMenuButton asChild>
                     <div onClick={() => setProjectId(project.id)}>
                       <div
@@ -118,9 +105,9 @@ export function AppSidebar() {
                           { "bg-primary text-white": projectId === project.id },
                         )}
                       >
-                        {project.title[0]}
+                        {project.name[0]}
                       </div>
-                      <span>{project.title}</span>
+                      <span>{project.name}</span>
                     </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
