@@ -1,12 +1,11 @@
 "use client";
 import Image from "next/image";
-// import React from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import useRefetch from "~/hooks/use-refetch";
-import refetch from "~/hooks/use-refetch";
 import { api } from "~/trpc/react";
 
 type FormInput = {
@@ -19,6 +18,7 @@ const Page = () => {
   const { register, handleSubmit, reset } = useForm<FormInput>();
   const createProject = api.project.createProject.useMutation();
   const refetch = useRefetch();
+  const router = useRouter();
 
   const onSubmit = async (data: FormInput) => {
     createProject.mutate(
@@ -32,6 +32,7 @@ const Page = () => {
           toast.success("Project created successfully");
           refetch();
           reset();
+          router.push("/dashboard");
         },
         onError: (error) => {
           console.log(error);
