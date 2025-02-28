@@ -1,3 +1,4 @@
+import { pollCommits } from "~/lib/github";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 
@@ -23,6 +24,7 @@ export const projectRouter = createTRPCRouter({
           },
         },
       });
+      pollCommits(input.githubUrl);
       return project;
     }),
   getProjects: protectedProcedure.query(async ({ ctx }) => {
