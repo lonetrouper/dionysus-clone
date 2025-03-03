@@ -11,8 +11,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="ml-auto"></div>
           <UserButton />
         </div>
-        {/* <SidebarTrigger /> */}
-        {children}
+        <div className="h-4"></div>
+        <div className="h-[calc(100vh -6rem)] overflow-y-scroll rounded-md border  bg-sidebar p-4 shadow">
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );
