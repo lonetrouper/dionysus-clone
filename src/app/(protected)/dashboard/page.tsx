@@ -1,6 +1,5 @@
 "use client";
 import useProject from "~/hooks/use-project";
-import { processCommits } from "~/lib/github";
 
 const Dashboard = () => {
   const { project } = useProject();
