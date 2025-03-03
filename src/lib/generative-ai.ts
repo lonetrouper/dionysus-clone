@@ -39,5 +39,5 @@ Do not include parts of the example in your summary.
 It is given only as an example of appropriate comments.`,
     `Please summarise the following diff file: \n\n${diff}`,
   ]);
-  console.log(response.response.text());
+  return response.response.text();
 };
