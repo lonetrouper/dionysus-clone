@@ -3,6 +3,7 @@ import { ExternalLink, Github } from "lucide-react";
 import Link from "next/link";
 import useProject from "~/hooks/use-project";
 import CommitLog from "./commit-log";
+import LangchainPractice from "./langchain-practice";
 
 const Dashboard = () => {
   const { project } = useProject();
@@ -37,7 +38,8 @@ const Dashboard = () => {
         </div>
       </div>
       <div className="mt-8"></div>
-      <CommitLog /> 
+      {/* <CommitLog />  */}
+     <LangchainPractice /> 
     </div>
   );
 };
