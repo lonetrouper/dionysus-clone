@@ -49,10 +49,10 @@ export const pdfLoader = async () => {
   const config = {
     postgresConnectionOptions: {
       type: "postgres",
-      host: "aws-0-ap-south-1.pooler.supabase.com",
+      host: process.env.PG_HOST,
       port: 5432,
-      user: "postgres.iywsjeddkphvnaitzrts",
-      password: "j5n-2Ti_YSEmKxB",
+      user: process.env.PG_USER,
+      password: process.env.PG_PASSWORD,
       database: "postgres",
     } as PoolConfig,
     tableName: "testlangchainjs",
