@@ -39,7 +39,6 @@ export const pdfLoader = async () => {
   );
 
   embeddings.forEach((embedding) => {
-    console.log("embedding", embedding.slice(0, 5));
   });
 
   // const connectionString = process.env.DATABASE_URL;
@@ -74,18 +73,36 @@ export const pdfLoader = async () => {
     temperature: 0,
   });
 
-  const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+  // const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
 
   const question = "Which product supports DHCP";
 
-  const retrievedDocuments = await vectorStore.similaritySearch(question);
-  const docContent = retrievedDocuments
-    .map((doc) => doc.pageContent)
-    .join("\n");
-  const messages = await promptTemplate.invoke({
-    question: question,
-    context: docContent,
-  });
-  const answer = await llm.invoke(messages);
-  console.log("RAG answer", answer);
+  // const retrievedDocuments = await vectorStore.similaritySearch(question);
+  // const docContent = retrievedDocuments
+  //   .map((doc) => doc.pageContent)
+  //   .join("\n");
+  // const messages = await promptTemplate.invoke({
+  //   question: question,
+  //   context: docContent,
+  // });
+  // const answer = await llm.invoke(messages);
+  // console.log("RAG answer", answer);
+
+  // Testing the classifier
+
+  const queryMessages = await classifierPromptTemplate(question);
+  const answer = await llm.invoke(queryMessages);
+  console.log(answer);
+};
+
+// Create a prompt template that instructs the LLM on classification
+const classifierPromptTemplate = async (query: string) => {
+  const promptTemplate = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "You are a product specification assistant. Analyze the following query and determine if it asks for aggregated data (spanning multiple products) or specific data about a single product. Return only one label: 'aggregated' or 'product-specific'.",
+    ],
+    ["user", "Query: {query}\n\nClassification:"],
+  ]);
+  return await promptTemplate.invoke({ query });
 };
