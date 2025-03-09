@@ -28,4 +28,31 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
 
-shameful test commit
+Sample queries for which I'm designing the system:
+
+Feature Filters:
+
+“List all access points that support DHCP protocol.”
+“Which access points offer 802.11ax support?”
+“Show me models with Power over Ethernet (PoE).”
+Comparisons and Overviews:
+
+“What are the differences between indoor and outdoor access points?”
+“Can you compare the top three access points for enterprise use?”
+Category and Pricing:
+
+“What are the available access point models in the mid-range price segment?”
+“Which access points have received the best reviews?”
+Product-Specific Queries
+Detailed Specifications:
+
+“What is the operating temperature range for Product X?”
+“What are the dimensions and weight of Model Y?”
+Technical Features:
+
+“Does Product Z support dual-band frequencies?”
+“What is the maximum throughput of Model X?”
+Additional Details:
+
+“What is the warranty period for Access Point Model Y?”
+“Can you provide the installation guidelines for Product Z?”
