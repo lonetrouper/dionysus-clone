@@ -8,6 +8,7 @@ import {
 import { Client, PoolConfig } from "pg";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { webLoaderSample } from "./web-loader";
 
 export const pdfLoader = async () => {
   const loader = new PDFLoader(
@@ -38,8 +39,7 @@ export const pdfLoader = async () => {
     }),
   );
 
-  embeddings.forEach((embedding) => {
-  });
+  embeddings.forEach((embedding) => {});
 
   // const connectionString = process.env.DATABASE_URL;
   // const pgClient = new Client({connectionString})
@@ -92,7 +92,8 @@ export const pdfLoader = async () => {
 
   const queryMessages = await classifierPromptTemplate(question);
   const answer = await llm.invoke(queryMessages);
-  console.log(answer);
+  // console.log(answer);
+  webLoaderSample();
 };
 
 // Create a prompt template that instructs the LLM on classification
