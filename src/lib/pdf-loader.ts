@@ -9,12 +9,125 @@ import { Client, PoolConfig } from "pg";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { webLoaderSample } from "./web-loader";
+import { Document } from "@langchain/core/documents";
+import { doc } from "prettier";
+import { get } from "http";
+
+const config = {
+  postgresConnectionOptions: {
+    type: "postgres",
+    host: process.env.PG_HOST,
+    port: 5432,
+    user: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    database: "postgres",
+  } as PoolConfig,
+  tableName: "testlangchainjs",
+  columns: {
+    idColumnName: "id",
+    vectorColumnName: "vector",
+    contentColumnName: "content",
+    metadataColumnName: "metadata",
+  },
+  // supported distance strategies: cosine (default), innerProduct, or euclidean
+  distanceStrategy: "cosine" as DistanceStrategy,
+};
+
+const embeddingModel = new VertexAIEmbeddings({
+  model: "text-embedding-004",
+});
+
+const vectorStore = await PGVectorStore.initialize(embeddingModel, config);
+
+const llm = new ChatVertexAI({
+  model: "gemini-1.5-flash",
+  temperature: 0,
+});
 
 export const pdfLoader = async () => {
-  const loader = new PDFLoader(
-    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_hsp-io-4ge2s-cpd-pdf-1730617629-11.pdf",
-  );
+  const documentLocations = [
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_ion4_4_2-pdf-1718603223-11.pdf",
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_ion4e-pdf-1718603155-11.pdf",
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_ion4xe_ion4xe-ext-updated-pdf-1717654776-11.pdf",
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_ion4xi_wp-pdf-1717520737-11.pdf",
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet_ion12xi_h_h2-pdf-1717520920-11.pdf",
+    "/home/pratushbose/Documents/personal_projects/dionysus-practice/src/lib/pdfs/datasheet-ion12xe_h2-pdf-1737086199-11.pdf",
+  ];
 
+  const productNames = [
+    "ion4",
+    "ion4e",
+    "ion4xe",
+    "ion4xi",
+    "ion12xi",
+    "ion12xe",
+  ];
+
+  documentLocations.forEach(async (location, index) => {
+    const documentsWithMetadata = await getSplitsWithMetadata(
+      location,
+      productNames[index],
+    );
+    await addEmbeddingsToVectorStore(
+      documentsWithMetadata,
+      productNames[index],
+    );
+  });
+
+  console.log("rag answer",await getRAGAnswer("What is the power consumption?", "ion4xe"));
+
+  // Testing the classifier
+
+  // const queryMessages = await classifierPromptTemplate(question);
+  // const answer = await llm.invoke(queryMessages);
+  // console.log(answer);
+  // webLoaderSample();
+};
+
+const getRAGAnswer = async (question: string, productName: string) => {
+  const client = new Client(config.postgresConnectionOptions);
+  await client.connect();
+
+  // Query the database for documents matching the product name
+  const metadataQuery = `
+    SELECT id, content, metadata
+    FROM ${config.tableName}
+    WHERE metadata->>'productName' = $1
+  `;
+  const res = await client.query(metadataQuery, [productName]);
+  const filteredDocs = res.rows.map((row) => ({
+    id: row.id,
+    pageContent: row.content,
+    metadata: row.metadata,
+  }));
+
+  await client.end();
+
+  // Perform semantic search on the retrieved documents
+  const retrievedDocuments = await vectorStore.similaritySearch(question, 5, {
+    filter: { "metadata->>'productName": productName },
+  });
+
+  // console.log("retrieved documents", retrievedDocuments);
+  const docContent = retrievedDocuments
+    .map((doc) => doc.pageContent)
+    .join("\n");
+
+  const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+
+  const messages = await promptTemplate.invoke({
+    question: question,
+    context: docContent,
+  });
+  const answer = await llm.invoke(messages);
+  return answer;
+};
+
+const getSplitsWithMetadata = async (
+  pdfLocation: string,
+  productName: string | undefined,
+) => {
+  const loader = new PDFLoader(pdfLocation);
   const docs = await loader.load();
   if (docs[0] && docs[0].pageContent) {
     // console.log(docs[0].metadata)
@@ -28,72 +141,46 @@ export const pdfLoader = async () => {
   });
 
   const allSplits = await textSplitter.splitDocuments(docs);
-
-  const embeddingModel = new VertexAIEmbeddings({
-    model: "text-embedding-004",
-  });
-
-  const embeddings = await Promise.all(
-    allSplits.map((split) => {
-      return embeddingModel.embedQuery(split.pageContent);
-    }),
-  );
-
-  embeddings.forEach((embedding) => {});
-
-  // const connectionString = process.env.DATABASE_URL;
-  // const pgClient = new Client({connectionString})
-  // await pgClient.connect()
-
-  const config = {
-    postgresConnectionOptions: {
-      type: "postgres",
-      host: process.env.PG_HOST,
-      port: 5432,
-      user: process.env.PG_USER,
-      password: process.env.PG_PASSWORD,
-      database: "postgres",
-    } as PoolConfig,
-    tableName: "testlangchainjs",
-    columns: {
-      idColumnName: "id",
-      vectorColumnName: "vector",
-      contentColumnName: "content",
-      metadataColumnName: "metadata",
+  const documentsWithMetadata = allSplits.map((split, index) => ({
+    pageContent: split.pageContent,
+    metadata: {
+      documentId: index,
+      productName: productName,
     },
-    // supported distance strategies: cosine (default), innerProduct, or euclidean
-    distanceStrategy: "cosine" as DistanceStrategy,
-  };
+  }));
 
-  const vectorStore = await PGVectorStore.initialize(embeddingModel, config);
-  await vectorStore.addDocuments(allSplits);
+  return documentsWithMetadata;
+};
 
-  const llm = new ChatVertexAI({
-    model: "gemini-1.5-flash",
-    temperature: 0,
-  });
+const addEmbeddingsToVectorStore = async (
+  allSplits: Document[],
+  productName: string | undefined,
+) => {
+  const client = new Client(config.postgresConnectionOptions);
+  await client.connect();
 
-  // const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+  // Check if the product name already exists
+  const checkProductQuery = `
+    SELECT COUNT(*) as count
+    FROM ${config.tableName}
+    WHERE metadata->>'productName' = $1
+  `;
+  const checkProductResult = await client.query(checkProductQuery, [
+    productName,
+  ]);
+  const productExists = checkProductResult.rows[0].count > 0;
 
-  const question = "Which product supports DHCP";
+  if (!productExists) {
+    // const vectorStore = await PGVectorStore.initialize(embeddingModel, config);
+    await vectorStore.addDocuments(allSplits);
 
-  // const retrievedDocuments = await vectorStore.similaritySearch(question);
-  // const docContent = retrievedDocuments
-  //   .map((doc) => doc.pageContent)
-  //   .join("\n");
-  // const messages = await promptTemplate.invoke({
-  //   question: question,
-  //   context: docContent,
-  // });
-  // const answer = await llm.invoke(messages);
-  // console.log("RAG answer", answer);
-
-  // Testing the classifier
-
-  const queryMessages = await classifierPromptTemplate(question);
-  const answer = await llm.invoke(queryMessages);
-  // console.log(answer);
-  webLoaderSample();
+    console.log(
+      `Documents for product "${productName}" added to the vector store.`,
+    );
+  } else {
+    console.log(`Product "${productName}" already exists in the database.`);
+  }
+  await client.end();
 };
 
 // Create a prompt template that instructs the LLM on classification
