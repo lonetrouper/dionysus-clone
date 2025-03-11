@@ -8,10 +8,7 @@ import {
 import { Client, PoolConfig } from "pg";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { webLoaderSample } from "./web-loader";
 import { Document } from "@langchain/core/documents";
-import { doc } from "prettier";
-import { get } from "http";
 
 const config = {
   postgresConnectionOptions: {
@@ -85,23 +82,6 @@ export const pdfLoader = async () => {
 };
 
 const getRAGAnswer = async (question: string, productName: string) => {
-  const client = new Client(config.postgresConnectionOptions);
-  await client.connect();
-
-  // Query the database for documents matching the product name
-  const metadataQuery = `
-    SELECT id, content, metadata
-    FROM ${config.tableName}
-    WHERE metadata->>'productName' = $1
-  `;
-  const res = await client.query(metadataQuery, [productName]);
-  const filteredDocs = res.rows.map((row) => ({
-    id: row.id,
-    pageContent: row.content,
-    metadata: row.metadata,
-  }));
-
-  await client.end();
 
   // Perform semantic search on the retrieved documents
   const retrievedDocuments = await vectorStore.similaritySearch(question, 5, {
