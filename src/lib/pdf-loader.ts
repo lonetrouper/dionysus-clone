@@ -34,7 +34,13 @@ const embeddingModel = new VertexAIEmbeddings({
   model: "text-embedding-004",
 });
 
-const vectorStore = await PGVectorStore.initialize(embeddingModel, config);
+let vectorStore: PGVectorStore | null = null;
+
+const initializeVectorStore = async () => {
+  if (!vectorStore) {
+    vectorStore = await PGVectorStore.initialize(embeddingModel, config);
+  }
+};
 
 const llm = new ChatVertexAI({
   model: "gemini-1.5-flash",
@@ -71,7 +77,7 @@ export const pdfLoader = async () => {
     );
   });
 
-  console.log("rag answer",await getRAGAnswer("What is the power consumption?", "ion4xe"));
+  // console.log("rag answer",await getRAGAnswer("What is the power consumption?", "ion4xe"));
 
   // Testing the classifier
 
@@ -81,26 +87,32 @@ export const pdfLoader = async () => {
   // webLoaderSample();
 };
 
-const getRAGAnswer = async (question: string, productName: string) => {
-
+export const getRAGAnswer = async (question: string, productName: string) => {
   // Perform semantic search on the retrieved documents
+  await initializeVectorStore();
+  if (vectorStore == null) {
+    throw new Error("Vector store not initialized");
+  }
   const retrievedDocuments = await vectorStore.similaritySearch(question, 5, {
     filter: { "metadata->>'productName": productName },
   });
 
-  // console.log("retrieved documents", retrievedDocuments);
+  console.log("retrieved documents", retrievedDocuments);
   const docContent = retrievedDocuments
     .map((doc) => doc.pageContent)
     .join("\n");
 
-  const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+  console.log("doc content", docContent);
 
-  const messages = await promptTemplate.invoke({
-    question: question,
-    context: docContent,
-  });
-  const answer = await llm.invoke(messages);
-  return answer;
+  // const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+
+  // const messages = await promptTemplate.invoke({
+  //   question: question,
+  //   context: docContent,
+  // });
+  const productSpecialistMessages = await productSpecialistTemplate(question, productName, docContent);
+  const answer = await llm.invoke(productSpecialistMessages);
+  return answer.content;
 };
 
 const getSplitsWithMetadata = async (
@@ -150,6 +162,11 @@ const addEmbeddingsToVectorStore = async (
   ]);
   const productExists = checkProductResult.rows[0].count > 0;
 
+  await initializeVectorStore();
+  if (vectorStore === null) {
+    throw new Error("Vector store not initialized");
+  }
+
   if (!productExists) {
     // const vectorStore = await PGVectorStore.initialize(embeddingModel, config);
     await vectorStore.addDocuments(allSplits);
@@ -173,4 +190,15 @@ const classifierPromptTemplate = async (query: string) => {
     ["user", "Query: {query}\n\nClassification:"],
   ]);
   return await promptTemplate.invoke({ query });
+};
+
+const productSpecialistTemplate = async (query: string, productName: string, additionalContext: string) => {
+  const promptTemplate = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      "You are a product specification assistant specializing in {productName}. You have the following information: {additionalContext} to answer the query. Provide a comprehensive answer.",
+    ],
+    ["user", "Query: {query}\n\nPlease provide a comprehensive answer:"],
+  ]);
+  return await promptTemplate.invoke({ query, productName, additionalContext });
 };
