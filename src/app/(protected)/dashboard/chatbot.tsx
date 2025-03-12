@@ -66,7 +66,7 @@ const Chatbot = () => {
         </Button>
         <div className="h-4"></div>
       </form>
-      <pre>
+      <pre className="w-full max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-gray-50 p-4">
         {getAnswerMutation.isPending
           ? "Generating answer..."
           : answer || "LLM Answer will appear here"}
