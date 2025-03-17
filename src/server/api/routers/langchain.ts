@@ -1,4 +1,4 @@
-import { langchainPractice } from "~/lib/langchain-practice";
+import { langchainPractice } from "~/lib/langchain-utils";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { getRAGAnswer, pdfLoader } from "~/lib/pdf-loader";
 import { metadata } from "~/app/layout";
