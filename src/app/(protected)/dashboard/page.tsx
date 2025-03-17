@@ -40,7 +40,7 @@ const Dashboard = () => {
       </div>
       <div className="mt-8"></div>
       {/* <CommitLog />  */}
-      <Chatbot />
+      {/* <Chatbot /> */}
     </div>
   );
 };
