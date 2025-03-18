@@ -1,9 +1,10 @@
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
 import { PrismaVectorStore } from "@langchain/community/vectorstores/prisma";
-import { getCodeSummary } from "./langchain-utils";
+import { addSourceCodeEmbeddings, getCodeSummary } from "./langchain-utils";
 import { Prisma, SourceCodeEmbeddings } from "@prisma/client";
 import { db } from "~/server/db";
 import { VertexAIEmbeddings } from "@langchain/google-vertexai";
+import { Document } from "@langchain/core/documents";
 
 const githubLoader = async (githubUrl: string, githubToken?: string) => {
   const loader = new GithubRepoLoader(githubUrl, {
@@ -23,29 +24,27 @@ const githubLoader = async (githubUrl: string, githubToken?: string) => {
   return documents;
 };
 
-const processDocument = async () => {
-  const embeddingModel = new VertexAIEmbeddings({
-    model: "text-embedding-004",
+const processDocument = async (document: Document, projectId: string) => {
+  const codeSummary = await getCodeSummary(
+    document.metadata.source,
+    document.pageContent,
+  );
+  const sourceCodeEmbeddings = await db.sourceCodeEmbeddings.create({
+    data: {
+      fileName: document.metadata.source,
+      sourceCode: document.pageContent,
+      summary: codeSummary,
+      projectId: projectId,
+    },
   });
-  const vectorStore =
-    PrismaVectorStore.withModel<SourceCodeEmbeddings>(db).create(embeddingModel, {
-        prisma: Prisma,
-        tableName: "SourceCodeEmbeddings",
-        vectorColumnName: "summaryEmbeddings",
-        columns: {
-            id: PrismaVectorStore.IdColumn,
-            summary: PrismaVectorStore.ContentColumn,
-        }
-
-    });
+  await addSourceCodeEmbeddings(sourceCodeEmbeddings);
 };
 
 export const indexGithubRepo = async (
+  projectId: string,
   githubUrl: string,
   githubToken?: string,
 ) => {
   const allDocuments = await githubLoader(githubUrl, githubToken);
-  const allSummaries = await Promise.all(
-    allDocuments.map((doc) => getCodeSummary(doc)),
-  );
+  await Promise.all(allDocuments.map((doc) => processDocument(doc, projectId)));
 };
