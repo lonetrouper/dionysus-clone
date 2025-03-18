@@ -5,6 +5,7 @@ import useProject from "~/hooks/use-project";
 import CommitLog from "./commit-log";
 import LangchainPractice from "./langchain-practice";
 import Chatbot from "./chatbot";
+import AskQuestionCard from "./ask-question-card";
 
 const Dashboard = () => {
   const { project } = useProject();
@@ -34,12 +35,12 @@ const Dashboard = () => {
       </div>
       <div className="mt-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
-          <div>AskQuestionCard</div>
+          <AskQuestionCard />
           <div>MeetingCard</div>
         </div>
       </div>
       <div className="mt-8"></div>
-      {/* <CommitLog />  */}
+      <CommitLog /> 
       {/* <Chatbot /> */}
     </div>
   );
