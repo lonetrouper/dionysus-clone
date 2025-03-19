@@ -4,10 +4,27 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { PrismaVectorStore } from "@langchain/community/vectorstores/prisma";
 import { Prisma, SourceCodeEmbeddings } from "@prisma/client";
 import { db } from "~/server/db";
+import { createStreamableValue } from "ai/rsc";
 
 const model = new ChatVertexAI({
   model: "gemini-1.5-flash",
   temperature: 0,
+});
+
+const embeddingModel = new VertexAIEmbeddings({
+  model: "text-embedding-004",
+});
+
+const vectorStore = PrismaVectorStore.withModel<SourceCodeEmbeddings>(
+  db,
+).create(embeddingModel, {
+  prisma: Prisma,
+  tableName: "SourceCodeEmbeddings",
+  vectorColumnName: "summaryEmbeddings",
+  columns: {
+    id: PrismaVectorStore.IdColumn,
+    summary: PrismaVectorStore.ContentColumn,
+  },
 });
 
 export const langchainPractice = async () => {
@@ -39,22 +56,12 @@ export const getCodeSummary = async (fileName: string, code: string) => {
   return response.content.toString();
 };
 
-export const addSourceCodeEmbeddings = async (sourceCode: SourceCodeEmbeddings) => {
-  const embeddingModel = new VertexAIEmbeddings({
-    model: "text-embedding-004",
-  });
-  const vectorStore = PrismaVectorStore.withModel<SourceCodeEmbeddings>(
-    db,
-  ).create(embeddingModel, {
-    prisma: Prisma,
-    tableName: "SourceCodeEmbeddings",
-    vectorColumnName: "summaryEmbeddings",
-    columns: {
-      id: PrismaVectorStore.IdColumn,
-      summary: PrismaVectorStore.ContentColumn,
-    },
-  });
-
+export const addSourceCodeEmbeddings = async (
+  sourceCode: SourceCodeEmbeddings,
+) => {
   await vectorStore.addModels([sourceCode]);
+};
 
+export const askQuestion = async (question: string, projectId: string) => {
+  const queryVector = await embeddingModel.embedQuery(question);
 };
