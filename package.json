@@ -60,6 +60,7 @@
     "@trpc/client": "^11.0.0-rc.446",
     "@trpc/react-query": "^11.0.0-rc.446",
     "@trpc/server": "^11.0.0-rc.446",
+    "@uiw/react-md-editor": "^4.0.5",
     "ai": "^4.1.62",
     "axios": "^1.8.1",
     "cheerio": "^1.0.0",
@@ -89,6 +90,7 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
+    "uiw": "^4.22.3",
     "usehooks-ts": "^3.1.1",
     "vaul": "^1.1.2",
     "zod": "^3.24.2"
