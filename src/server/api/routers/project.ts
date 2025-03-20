@@ -2,6 +2,7 @@ import { pollCommits } from "~/lib/github";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { indexGithubRepo } from "~/lib/github-loader";
+import { askQuestion } from "~/lib/langchain-utils";
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
@@ -55,4 +56,10 @@ export const projectRouter = createTRPCRouter({
         },
       });
     }),
+  getAnswer: protectedProcedure.input(z.object({
+    question: z.string(),
+    projectId: z.string()
+  })).mutation(async ({ ctx, input }) => {
+    return await askQuestion(input.question, input.projectId);
+  })
 });
