@@ -1,3 +1,4 @@
+import MDEditor from "@uiw/react-md-editor";
 import Image from "next/image";
 import React from "react";
 import { Button } from "~/components/ui/button";
@@ -9,34 +10,42 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
-import { askQuestion } from "./actions";
 import useProject from "~/hooks/use-project";
-import { set } from "date-fns";
+import useRefetch from "~/hooks/use-refetch";
+import { api } from "~/trpc/react";
 
 const AskQuestionCard = () => {
   const [question, setQuestion] = React.useState<string>("");
   const [open, setOpen] = React.useState<boolean>(false);
   const [answer, setAnswer] = React.useState<string>("");
+  const [loading, setLoading] = React.useState<boolean>(false);
   const { projectId } = useProject();
+  const getAnswerMutation = api.project.getAnswer.useMutation()
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    setOpen(true);
+    setAnswer("")
     e.preventDefault();
-    const {stream } = await askQuestion(question, projectId);
+
+    setLoading(true)
+    const { stream } = await getAnswerMutation.mutateAsync({question, projectId}); 
+    // const {stream } = await askQuestion(question, projectId);
+
+    setOpen(true);
     const reader = stream.getReader();
     while(true){
       const { done, value } = await reader.read();
       if(done) break;
       setAnswer(prev => prev + value);
     }
-
+    setLoading(false)
   };
+  const refetch = useRefetch();
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <div>
+            <div className="flex items-center gap-2">
               <DialogTitle>
                 <Image
                   src="/byteblaze.png"
@@ -45,10 +54,12 @@ const AskQuestionCard = () => {
                   height={40}
                 />
               </DialogTitle>
-              <Button></Button>
+              <Button variant={"outline"}>Save Answer</Button>
             </div>
           </DialogHeader>
-          <div>{answer}</div>
+          <MDEditor.Markdown source={answer}/>
+          <div className="h-4"></div>
+          <Button type='submit' onClick={() => setOpen(false)}>Close</Button>
         </DialogContent>
       </Dialog>
       <Card className="relative col-span-3">
@@ -63,7 +74,7 @@ const AskQuestionCard = () => {
               onChange={(e) => setQuestion(e.target.value)}
             />
             <div className="h-4"></div>
-            <Button type="submit">Ask ByteBlaze!</Button>
+            <Button type="submit" disabled={loading}>Ask ByteBlaze!</Button>
           </form>
         </CardContent>
       </Card>
