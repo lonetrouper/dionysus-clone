@@ -9,7 +9,6 @@ import {
 import { PrismaVectorStore } from "@langchain/community/vectorstores/prisma";
 import { Prisma, SourceCodeEmbeddings } from "@prisma/client";
 import { db } from "~/server/db";
-import { createStreamableValue } from "ai/rsc";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const model = new ChatVertexAI({
