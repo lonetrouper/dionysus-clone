@@ -45,7 +45,7 @@ const AskQuestionCard = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer("");
-    // setFileReferences([]);
+    setFileReferences([]);
     e.preventDefault();
 
     setLoading(true);
