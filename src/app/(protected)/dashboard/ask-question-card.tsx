@@ -94,7 +94,7 @@ const AskQuestionCard = () => {
                     projectId,
                     question,
                     answer,
-                    fileReferences
+                    fileReferences,
                   });
                 }}
               >
@@ -102,9 +102,14 @@ const AskQuestionCard = () => {
               </Button>
             </div>
           </DialogHeader>
-          <MDEditor.Markdown source={answer} className="p-2 rounded-md"  />
-          <div className="h-4"></div>
-          <CodeReferences fileReferences={fileReferences} />
+          <div className="grid sm:max-h-[80vh] w-full grid-cols-2 gap-4">
+            <div className="overflow-auto">
+              <MDEditor.Markdown source={answer} className="rounded-md p-2"/>
+            </div>
+            <div className="overflow-auto">
+              <CodeReferences fileReferences={fileReferences} />
+            </div>
+          </div>
           <Button type="submit" onClick={() => setOpen(false)}>
             Close
           </Button>
