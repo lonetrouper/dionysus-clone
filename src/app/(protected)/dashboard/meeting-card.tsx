@@ -9,6 +9,8 @@ import { uploadFile } from "~/lib/firebase";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 
 const MeetingCard = () => {
   const [isUploading, setIsUploading] = React.useState(false);
@@ -18,6 +20,22 @@ const MeetingCard = () => {
   const router = useRouter();
 
   const uploadMeeting = api.project.uploadMeeting.useMutation();
+
+  const processMeeting = useMutation({
+    mutationFn: async (data: {
+      meetingUrl: string;
+      meetingId: string;
+      projectId: string;
+    }) => {
+      const { meetingUrl, meetingId, projectId } = data;
+      const reponse = await axios.post("/api/process-meeting", {
+        meetingUrl,
+        meetingId,
+        projectId,
+      });
+      return reponse.data;
+    },
+  });
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -45,9 +63,10 @@ const MeetingCard = () => {
           name: file.name,
         },
         {
-          onSuccess: () => {
+          onSuccess: (meeting) => {
             toast.success("Meeting uploaded successfully");
             router.push("/meetings");
+            processMeeting.mutateAsync({meetingUrl: downloadUrl, meetingId: meeting.id, projectId: project.id});
           },
           onError: (error) => {
             toast.error(error.message);
@@ -78,7 +97,7 @@ const MeetingCard = () => {
             <Button disabled={isUploading}>
               <Upload className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
               Upload Meeting
-              <input className="hidden" {...getInputProps()}/>
+              <input className="hidden" {...getInputProps()} />
             </Button>
           </div>
         </>
