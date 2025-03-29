@@ -16,6 +16,8 @@ const MeetingsPage = () => {
     },
   );
 
+  const deleteMeeting = api.project.deleteMeeting.useMutation();
+
   return (
     <>
       <MeetingCard />
@@ -39,19 +41,33 @@ const MeetingsPage = () => {
                     {meeting.name}
                   </Link>
                   {meeting.status === "PROCESSING" && (
-                    <Badge className="bg-yellow-500 text-white">Processing...</Badge>
+                    <Badge className="bg-yellow-500 text-white">
+                      Processing...
+                    </Badge>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-x-2 text-xs text-gray-500">
-                <p className="whitespace-nowrap">{meeting.createdAt.toLocaleDateString()}</p>
+                <p className="whitespace-nowrap">
+                  {meeting.createdAt.toLocaleDateString()}
+                </p>
                 <p className="truncate">{meeting.issues.length}</p>
               </div>
             </div>
             <div className="flex flex-none items-center gap-x-4">
               <Link href={`/meetings/${meeting.id}`}>
-                <Button variant="outline">View Meeting</Button>
+                <Button size="sm" variant="outline">
+                  View Meeting
+                </Button>
               </Link>
+              <Button
+                disabled={deleteMeeting.isPending}
+                size="sm"
+                variant="destructive"
+                onClick={() => deleteMeeting.mutate({ meetingid: meeting.id })}
+              >
+                Delete Meeting
+              </Button>
             </div>
           </li>
         ))}
