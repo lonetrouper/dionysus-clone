@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { indexGithubRepo } from "~/lib/github-loader";
 import { askQuestion } from "~/lib/langchain-utils";
+import MeetingCard from "~/app/(protected)/dashboard/meeting-card";
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
@@ -120,6 +121,19 @@ export const projectRouter = createTRPCRouter({
       return await ctx.db.meeting.findMany({
         where: { projectId: input.projectId },
         include: { issues: true },
+      });
+    }),
+  deleteMeeting: protectedProcedure
+    .input(
+      z.object({
+        meetingid: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.meeting.delete({
+        where: {
+          id: input.meetingid,
+        },
       });
     }),
 });
