@@ -6,6 +6,8 @@ import { api } from "~/trpc/react";
 import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { toast } from "sonner";
+import useRefetch from "~/hooks/use-refetch";
 
 const MeetingsPage = () => {
   const { projectId } = useProject();
@@ -17,6 +19,7 @@ const MeetingsPage = () => {
   );
 
   const deleteMeeting = api.project.deleteMeeting.useMutation();
+  const refetch = useRefetch()
 
   return (
     <>
@@ -64,7 +67,12 @@ const MeetingsPage = () => {
                 disabled={deleteMeeting.isPending}
                 size="sm"
                 variant="destructive"
-                onClick={() => deleteMeeting.mutate({ meetingid: meeting.id })}
+                onClick={() => deleteMeeting.mutate({ meetingid: meeting.id }, {
+                  onSuccess: () => {
+                    toast.success("Meeting deleted successfully");
+                    refetch()
+                  }
+                })}
               >
                 Delete Meeting
               </Button>
