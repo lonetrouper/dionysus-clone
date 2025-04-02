@@ -7,6 +7,9 @@ import LangchainPractice from "./langchain-practice";
 import Chatbot from "./chatbot";
 import AskQuestionCard from "./ask-question-card";
 import MeetingCard from "./meeting-card";
+import ArchiveButton from "./archive-button";
+import InviteButon from "./invite-button";
+import TeamMembers from "./team-members";
 
 const Dashboard = () => {
   const { project } = useProject();
@@ -31,7 +34,9 @@ const Dashboard = () => {
         </div>
         <div className="h-4"></div>
         <div className="flex items-center gap-4">
-          TeamMembers InviteButton ArchiveButton
+          <TeamMembers />
+          <InviteButon />
+          <ArchiveButton />
         </div>
       </div>
       <div className="mt-4">
@@ -41,7 +46,7 @@ const Dashboard = () => {
         </div>
       </div>
       <div className="mt-8"></div>
-      <CommitLog /> 
+      <CommitLog />
       {/* <Chatbot /> */}
     </div>
   );
