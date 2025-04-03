@@ -1,9 +1,11 @@
 "use client";
 import { Info } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Router } from "next/router";
 import React from "react";
 import { Button } from "~/components/ui/button";
 import { Slider } from "~/components/ui/slider";
-import { createCheckoutSession } from "~/lib/razorpay";
+// import { createCheckoutSession } from "~/lib/razorpay";
 import { api } from "~/trpc/react";
 
 const BillingPage = () => {
@@ -11,6 +13,8 @@ const BillingPage = () => {
   const [creditsToBuy, setCreditsToBuy] = React.useState<number[]>([100]);
   const creditsToBuyAmount = creditsToBuy[0]!;
   const price = (creditsToBuyAmount / 50).toFixed(2);
+
+  const router = useRouter();
   return (
     <div>
       <h1 className="text-xl font-semibold">Billing</h1>
@@ -43,7 +47,8 @@ const BillingPage = () => {
       <div className="h-4"></div>
       <Button
         onClick={() => {
-          createCheckoutSession(creditsToBuyAmount);
+          // createCheckoutSession(creditsToBuyAmount);
+          router.push("/payment");
         }}
       >
         Buy {creditsToBuyAmount} credits for ${price}
