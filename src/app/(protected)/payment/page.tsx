@@ -9,8 +9,8 @@ import { useState } from "react";
 import Script from "next/script";
 
 function Payment() {
-  const [name, setName] = useState("Pratush");
-  const [email, setEmail] = useState("bosepratush@gmail.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("0");
   const [currency, setCurrency] = useState("INR");
   const [loading, setLoading] = useState(false);
