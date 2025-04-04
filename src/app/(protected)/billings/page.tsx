@@ -2,11 +2,15 @@
 import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Router } from "next/router";
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Slider } from "~/components/ui/slider";
 // import { createCheckoutSession } from "~/lib/razorpay";
 import { api } from "~/trpc/react";
+import { RazorpayPayment } from "../payment/page";
+import { auth } from "@clerk/nextjs/server";
 
 const BillingPage = () => {
   const { data: user } = api.project.getMyCredits.useQuery();
@@ -14,7 +18,19 @@ const BillingPage = () => {
   const creditsToBuyAmount = creditsToBuy[0]!;
   const price = (creditsToBuyAmount / 50).toFixed(2);
 
-  const router = useRouter();
+  const [paymentOpen, setPaymentOpen] = useState(false)
+
+  const handlePaymentSuccess = (data: any) => {
+    toast.success(`Payment Successful, You've purchased credits ${creditsToBuyAmount} credits`);
+    
+    // Close the payment dialog
+    setPaymentOpen(false);
+  };
+  
+  const handlePaymentFailure = (error: any) => {
+    toast.error(`Payment Failed: ${error.message}`);
+    setPaymentOpen(false);
+  };
   return (
     <div>
       <h1 className="text-xl font-semibold">Billing</h1>
@@ -48,11 +64,59 @@ const BillingPage = () => {
       <Button
         onClick={() => {
           // createCheckoutSession(creditsToBuyAmount);
-          router.push("/payment");
+          // router.push("/payment");
+          setPaymentOpen(true)
         }}
       >
         Buy {creditsToBuyAmount} credits for ${price}
       </Button>
+      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Your Purchase</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="flex justify-between mb-4">
+              <span>Credits:</span>
+              <span className="font-medium">{creditsToBuyAmount}</span>
+            </div>
+            <div className="flex justify-between mb-6 text-lg font-semibold">
+              <span>Total:</span>
+              <span>${price}</span>
+            </div>
+            
+            <Button 
+              className="w-full" 
+              onClick={() => {
+                // Now we'll dynamically load the payment component when user confirms
+                if (user) {
+                  setPaymentOpen(true);
+                } else {
+                  // toast({
+                  //   title: "Error",
+                  //   description: "User email not available",
+                  //   variant: "destructive",
+                  // });
+                }
+              }}
+            >
+              Proceed to Payment
+            </Button>
+            
+            {paymentOpen && user?.emailAddress && (
+              <RazorpayPayment
+                name={user?.firstName || "User"}
+                email={user.emailAddress}
+                amount={parseFloat(price)}
+                credits={creditsToBuyAmount}
+                onSuccess={handlePaymentSuccess}
+                onFailure={handlePaymentFailure}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
