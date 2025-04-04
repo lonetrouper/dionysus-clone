@@ -175,7 +175,7 @@ export const projectRouter = createTRPCRouter({
       where: {
         id: ctx.user.userId!,
       },
-      select: { credits: true },
+      // select: { credits: true },
     });
   }),
 });
