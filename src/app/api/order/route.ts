@@ -8,15 +8,21 @@ const razorpay = new Razorpay({
 });
 
 export async function POST(request: NextRequest) {
-  const { amount, currency } = (await request.json()) as {
+  const { amount, currency, credits, customerId } = (await request.json()) as {
     amount: string;
     currency: string;
+    credits: number;
+    customerId: string
   };
 
   var options = {
     amount: amount,
     currency: currency,
     receipt: "rcp1",
+    notes: {
+      "customerId": customerId,
+      "credits": credits,
+    }
   };
   const order = await razorpay.orders.create(options);
   console.log(order);
