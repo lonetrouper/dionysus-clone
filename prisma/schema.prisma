@@ -25,6 +25,8 @@ model User {
 
     userToProjects UserToProject[]
     questions Question[]
+
+    razorpayTransactions RazorpayTransaction[]
 }
 
 model Project {
@@ -136,4 +138,17 @@ model Issue {
 enum MeetingStatus {
     PROCESSING
     COMPLETED
+}
+
+model RazorpayTransaction {
+    id String @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    razorpayOrderId String
+    razorpayPaymentId String
+    razorpaySignature String
+    credits Int
+    userId String
+    user User @relation(fields: [userId], references: [id])
 }
