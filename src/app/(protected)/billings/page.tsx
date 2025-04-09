@@ -5,7 +5,12 @@ import { Router } from "next/router";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { Slider } from "~/components/ui/slider";
 // import { createCheckoutSession } from "~/lib/razorpay";
 import { api } from "~/trpc/react";
@@ -18,15 +23,17 @@ const BillingPage = () => {
   const creditsToBuyAmount = creditsToBuy[0]!;
   const price = (creditsToBuyAmount / 50).toFixed(2);
 
-  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false);
 
   const handlePaymentSuccess = (data: any) => {
-    toast.success(`Payment Successful, You've purchased credits ${creditsToBuyAmount} credits`);
-    
+    toast.success(
+      `Payment Successful, You've purchased credits ${creditsToBuyAmount} credits`,
+    );
+
     // Close the payment dialog
     setPaymentOpen(false);
   };
-  
+
   const handlePaymentFailure = (error: any) => {
     toast.error(`Payment Failed: ${error.message}`);
     setPaymentOpen(false);
@@ -65,7 +72,7 @@ const BillingPage = () => {
         onClick={() => {
           // createCheckoutSession(creditsToBuyAmount);
           // router.push("/payment");
-          setPaymentOpen(true)
+          setPaymentOpen(true);
         }}
       >
         Buy {creditsToBuyAmount} credits for ${price}
@@ -75,19 +82,19 @@ const BillingPage = () => {
           <DialogHeader>
             <DialogTitle>Complete Your Purchase</DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4">
-            <div className="flex justify-between mb-4">
+            <div className="mb-4 flex justify-between">
               <span>Credits:</span>
               <span className="font-medium">{creditsToBuyAmount}</span>
             </div>
-            <div className="flex justify-between mb-6 text-lg font-semibold">
+            <div className="mb-6 flex justify-between text-lg font-semibold">
               <span>Total:</span>
               <span>${price}</span>
             </div>
-            
-            <Button 
-              className="w-full" 
+
+            <Button
+              className="w-full"
               onClick={() => {
                 // Now we'll dynamically load the payment component when user confirms
                 if (user) {
@@ -103,9 +110,10 @@ const BillingPage = () => {
             >
               Proceed to Payment
             </Button>
-            
+
             {paymentOpen && user?.emailAddress && (
               <RazorpayPayment
+                customerId={user.id}
                 name={user?.firstName || "User"}
                 email={user.emailAddress}
                 amount={parseFloat(price)}
