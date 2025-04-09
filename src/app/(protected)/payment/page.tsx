@@ -11,6 +11,7 @@ declare global {
 }
 
 interface RazorpayPaymentProps {
+  customerId: string;
   name: string;
   email: string;
   amount: number;
@@ -20,6 +21,7 @@ interface RazorpayPaymentProps {
 }
 
 export function RazorpayPayment({
+  customerId,
   name,
   email,
   amount,
@@ -38,7 +40,9 @@ export function RazorpayPayment({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Math.round(amount * 100), // Convert to smallest currency unit
+          currency: "INR",
           credits,
+          customerId,
         }),
       });
 
@@ -61,13 +65,13 @@ export function RazorpayPayment({
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: Math.round(amount * 100),
-        currency: "USD",
-        name: "Dionysus",
-        description: `Purchase ${credits} credits`,
+        currency: "INR",
+        name: "ByteBlaze",
+        description: `Purchase ${credits} ByteBlaze credits`,
         order_id: orderId,
         handler: async function (response: any) {
           // Verify payment on backend
-          const verification = await fetch("/api/payment/verify", {
+          const verification = await fetch("/api/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
