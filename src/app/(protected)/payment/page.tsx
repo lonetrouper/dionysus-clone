@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import axios from "axios";
 
 declare global {
   interface Window {
@@ -20,7 +21,40 @@ interface RazorpayPaymentProps {
   onFailure?: (error: any) => void;
 }
 
-export function RazorpayPayment({
+const createOrder = async (
+  amount: number,
+  credits: number,
+  customerId: string,
+) => {
+  try {
+    const response = await axios.post("/api/order", {
+      amount: Math.round(amount * 100), // Convert to smallest currency unit
+      currency: "INR",
+      credits,
+      customerId,
+    });
+    return response.data.orderId;
+  } catch (error) {
+    console.error("Order creation failed:", error);
+    throw error;
+  }
+};
+
+const verifyPayment = async (paymentData: any, credits: number) => {
+  try {
+    const response = await axios.post("/api/verify", {
+      razorpayPaymentId: paymentData.razorpay_payment_id,
+      razorpayOrderId: paymentData.razorpay_order_id,
+      razorpaySignature: paymentData.razorpay_signature,
+      credits,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Payment verification failed:", error);
+    throw error;
+  }
+};
+export const RazorpayPayment = ({
   customerId,
   name,
   email,
@@ -28,39 +62,18 @@ export function RazorpayPayment({
   credits,
   onSuccess,
   onFailure,
-}: RazorpayPaymentProps) {
+}: RazorpayPaymentProps) => {
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   // API to create order on your backend
-  const createOrder = async () => {
-    try {
-      const response = await fetch("/api/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to smallest currency unit
-          currency: "INR",
-          credits,
-          customerId,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to create order");
-      const data = await response.json();
-      return data.orderId;
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      throw error;
-    }
-  };
 
   const handlePayment = async () => {
     if (!scriptLoaded || processing) return;
 
     setProcessing(true);
     try {
-      const orderId = await createOrder();
+      const orderId = await createOrder(amount, credits, customerId);
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -70,26 +83,16 @@ export function RazorpayPayment({
         description: `Purchase ${credits} ByteBlaze credits`,
         order_id: orderId,
         handler: async function (response: any) {
-          // Verify payment on backend
-          const verification = await fetch("/api/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
-              credits,
-            }),
-          });
-
-          const result = await verification.json();
-
-          if (result.success) {
-            onSuccess(result);
-          } else {
-            onFailure?.(
-              new Error(result.message || "Payment verification failed"),
-            );
+          try {
+            const result = await verifyPayment(response, credits);
+            if (result.success) {
+              onSuccess?.(response);
+            } else {
+              onFailure?.(new Error("Payment verification failed"));
+            }
+          } catch (error) {
+            console.error("Payment verification failed:", error);
+            onFailure?.(error);
           }
         },
         prefill: { name, email },
@@ -102,11 +105,13 @@ export function RazorpayPayment({
       });
 
       paymentObject.open();
+
     } catch (error) {
       console.error("Payment process failed:", error);
       onFailure?.(error);
     } finally {
       setProcessing(false);
+      setScriptLoaded(false);
     }
   };
 
@@ -124,4 +129,4 @@ export function RazorpayPayment({
       onError={() => onFailure?.(new Error("Failed to load Razorpay script"))}
     />
   );
-}
+};
