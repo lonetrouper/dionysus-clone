@@ -1,6 +1,7 @@
 "use server";
 import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -8,11 +9,15 @@ const razorpay = new Razorpay({
 });
 
 export async function POST(request: NextRequest) {
+  const userId = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { amount, currency, credits, customerId } = (await request.json()) as {
     amount: string;
     currency: string;
     credits: number;
-    customerId: string
+    customerId: string;
   };
 
   var options = {
@@ -20,9 +25,9 @@ export async function POST(request: NextRequest) {
     currency: currency,
     receipt: "rcp1",
     notes: {
-      "customerId": customerId,
-      "credits": credits,
-    }
+      customerId: customerId,
+      credits: credits,
+    },
   };
   const order = await razorpay.orders.create(options);
   console.log(order);
