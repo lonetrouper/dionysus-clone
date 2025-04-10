@@ -147,7 +147,7 @@ model RazorpayTransaction {
 
     razorpayOrderId String
     razorpayPaymentId String
-    razorpaySignature String
+
     credits Int
     userId String
     user User @relation(fields: [userId], references: [id])
