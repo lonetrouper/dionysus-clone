@@ -1,4 +1,5 @@
 "use client";
+import { Info } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -17,31 +18,42 @@ type FormInput = {
 const Page = () => {
   const { register, handleSubmit, reset } = useForm<FormInput>();
   const createProject = api.project.createProject.useMutation();
+  const checkCredits = api.project.checkCredits.useMutation();
   const refetch = useRefetch();
   const router = useRouter();
 
   const onSubmit = async (data: FormInput) => {
-    createProject.mutate(
-      {
-        name: data.projectName,
+    if (!!checkCredits.data) {
+      createProject.mutate(
+        {
+          name: data.projectName,
+          githubUrl: data.repoUrl,
+          githubToken: data.githubToken,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Project created successfully");
+            refetch();
+            reset();
+            router.push("/dashboard");
+          },
+          onError: (error) => {
+            console.log(error);
+            toast.error("Failed to create project");
+          },
+        },
+      );
+    } else {
+      checkCredits.mutate({
         githubUrl: data.repoUrl,
         githubToken: data.githubToken,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Project created successfully");
-          refetch();
-          reset();
-          router.push("/dashboard");
-        },
-        onError: (error) => {
-          console.log(error);
-          toast.error("Failed to create project");
-        },
-      },
-    );
-    return true;
+      });
+    }
+    // return true;
   };
+  const hasEnoughCredits = checkCredits?.data?.userCredits
+    ? checkCredits.data.fileCount <= checkCredits.data.userCredits
+    : true;
 
   return (
     <div className="flex h-full items-center justify-center gap-12">
@@ -81,9 +93,30 @@ const Page = () => {
               {...register("githubToken")}
               placeholder="Github Token(Optional)"
             />
+            {!!checkCredits.data && (
+              <>
+                <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-orange-700">
+                  <div className="flex items-center gap-2">
+                    <Info className="size-4" />
+                    <p className="text-sm">
+                      You will be charged{" "}
+                      <strong>{checkCredits.data?.fileCount}</strong> credits
+                      for this repository.
+                    </p>
+                  </div>
+                  <p className="ml-6 text-sm text-blue-600">
+                    You have <strong>{checkCredits.data?.userCredits}</strong>{" "}
+                    credits remaining.
+                  </p>
+                </div>
+              </>
+            )}
             <div className="h-2"></div>
-            <Button type="submit" disabled={createProject.isPending}>
-              Create Project
+            <Button
+              type="submit"
+              disabled={createProject.isPending || !!checkCredits.isPending || !hasEnoughCredits}
+            >
+              {!!checkCredits.data ? "Create Project" : "Check Credits"}
             </Button>
           </form>
         </div>
