@@ -8,8 +8,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Dionysus-clone",
-  description: "Dionysus-clone",
+  title: "Byteblaze",
+  description: "Byteblaze",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
