@@ -11,13 +11,26 @@ import { Prisma, SourceCodeEmbeddings } from "@prisma/client";
 import { db } from "~/server/db";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
+const credentialsBase64 = process.env.GOOGLE_APPLICATION_CREDENTIALS_ENCODED!;
+const credentialsJson = JSON.parse(
+  Buffer.from(credentialsBase64, "base64").toString("utf8")
+);
+
 const model = new ChatVertexAI({
-  model: "gemini-1.5-flash",
+  authOptions: {
+    credentials: credentialsJson,
+    projectId: credentialsJson.project_id,
+  },
+  model: "gemini-1.5-flash-002",
   temperature: 0,
   streaming: true,
 });
 
 const embeddingModel = new VertexAIEmbeddings({
+  authOptions: {
+    credentials: credentialsJson,
+    projectId: credentialsJson.project_id,
+  },
   model: "text-embedding-004",
 });
 
