@@ -1,16 +1,22 @@
+"use client";
 import { useState } from "react";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <div className="max-w-3xl mx-auto p-8 text-gray-200 bg-gray-900 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Contact Us</h1>
-      <p className="text-gray-400 mb-10">
-        Got a question, feedback, or just want to say hi? Fill out the form below or email us directly at{" "}
-        <a href="mailto:support@byteblaze.dev" className="text-indigo-400 underline">
+    <div className="mx-auto min-h-screen max-w-3xl bg-gray-900 p-8 text-gray-200">
+      <h1 className="mb-6 text-3xl font-bold">Contact Us</h1>
+      <p className="mb-10 text-gray-400">
+        Got a question, feedback, or just want to say hi? Fill out the form
+        below or email us directly at{" "}
+        <a
+          href="mailto:support@byteblaze.dev"
+          className="text-indigo-400 underline"
+        >
           support@byteblaze.dev
-        </a>.
+        </a>
+        .
       </p>
 
       {!submitted ? (
@@ -22,7 +28,7 @@ export default function Contact() {
           className="space-y-6"
         >
           <div>
-            <label className="block text-sm mb-1" htmlFor="name">
+            <label className="mb-1 block text-sm" htmlFor="name">
               Name
             </label>
             <input
@@ -30,12 +36,12 @@ export default function Contact() {
               type="text"
               id="name"
               name="name"
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white"
+              className="w-full rounded border border-gray-700 bg-gray-800 p-3 text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1" htmlFor="email">
+            <label className="mb-1 block text-sm" htmlFor="email">
               Email
             </label>
             <input
@@ -43,12 +49,12 @@ export default function Contact() {
               type="email"
               id="email"
               name="email"
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white"
+              className="w-full rounded border border-gray-700 bg-gray-800 p-3 text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1" htmlFor="message">
+            <label className="mb-1 block text-sm" htmlFor="message">
               Message
             </label>
             <textarea
@@ -56,19 +62,19 @@ export default function Contact() {
               id="message"
               name="message"
               rows={5}
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white"
+              className="w-full rounded border border-gray-700 bg-gray-800 p-3 text-white"
             />
           </div>
 
           <button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 transition px-6 py-3 rounded text-white font-medium"
+            className="rounded bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-500"
           >
             Send Message
           </button>
         </form>
       ) : (
-        <div className="text-green-400 font-semibold">
+        <div className="font-semibold text-green-400">
           ✅ Thanks! We'll get back to you shortly.
         </div>
       )}
