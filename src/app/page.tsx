@@ -45,14 +45,17 @@ export default function Home() {
       </main>
 
       <footer className="mt-24 space-x-4 p-6 text-center text-sm text-gray-500">
-        <a href="https://merchant.razorpay.com/policy/OVcdBDGZjTCX3B/terms" className="hover:underline">
+        <a href="pages/terms" className="hover:underline">
           Terms
         </a>
-        <a href="https://merchant.razorpay.com/policy/OVcdBDGZjTCX3B/refund" className="hover:underline">
+        <a href="pages/cancellation" className="hover:underline">
           Cancellation and Refund Policy 
         </a>
-        <a href="https://merchant.razorpay.com/policy/OVcdBDGZjTCX3B/shipping" className="hover:underline">
-          Delivery and Return Policy 
+        <a href="pages/contact" className="hover:underline">
+          Contact Us 
+        </a>
+        <a href="pages/privacy" className="hover:underline">
+          Privacy Policy 
         </a>
         <span>
           © {new Date().getFullYear()} Byteblaze. All rights reserved.
