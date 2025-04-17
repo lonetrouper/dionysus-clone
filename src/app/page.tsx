@@ -1,4 +1,9 @@
+"use client"
+
+import { useRouter } from "next/navigation";
+
 export default function Home() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <header className="mx-auto flex max-w-7xl items-center justify-between p-6">
@@ -17,7 +22,7 @@ export default function Home() {
           your codebase like they would ask a teammate. No more “where is this
           function defined?” — just ask.
         </p>
-        <button className="rounded-xl bg-indigo-600 px-8 py-4 text-lg text-white transition hover:bg-indigo-500">
+        <button className="rounded-xl bg-indigo-600 px-8 py-4 text-lg text-white transition hover:bg-indigo-500" onClick={() => router.push("/create")}>
           Get Early Access
         </button>
 
